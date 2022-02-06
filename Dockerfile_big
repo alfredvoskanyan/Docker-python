@@ -1,0 +1,21 @@
+## base image
+FROM python:3.7.5-slim-buster AS compile-image
+
+## install dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gcc
+
+## virtualenv
+ENV VIRTUAL_ENV=/opt/venv
+RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+## add and install requirements
+RUN pip install --upgrade pip && pip install pip-tools
+COPY ./requirements.in .
+RUN pip-compile requirements.in > requirements.txt && pip-sync
+RUN pip install -r requirements.txt
+
+
+## run server
+CMD python /srv/app/web.py
